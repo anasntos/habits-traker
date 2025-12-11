@@ -1,80 +1,132 @@
-export function updateStreak(habit) {}
-export function resetStreak(habit) {}
-export function getHabitHistory(habitId) {}
-import { getAllHabits, saveHabitsToLocalStorage } from "./habitManager.js";
+import { getAllHabits, saveAllHabits } from "./habitManager.js";
 
-export function checkInHabit(id) {
+// =====================================
+// HELPERS — Funções de Data
+// =====================================
+
+// Retorna string "YYYY-MM-DD"
+function getTodayDate() {
+  return new Date().toISOString().split("T")[0];
+}
+
+// Retorna número da semana (1–53)
+function getCurrentWeek() {
+  const date = new Date();
+  const oneJan = new Date(date.getFullYear(), 0, 1);
+  const numberOfDays = Math.floor((date - oneJan) / (24 * 60 * 60 * 1000));
+  return Math.ceil((date.getDay() + 1 + numberOfDays) / 7);
+}
+
+
+// =====================================
+// CHECK-IN DIÁRIO
+// =====================================
+export function checkInHabit(habitId) {
   const habits = getAllHabits();
-  const habit = habits.find(h => h.id === id);
+  const habit = habits.find(h => h.id === habitId);
 
-  if (!habit) return;
+  if (!habit) return "notFound";
 
-  const today = new Date().toDateString();
+  const today = getTodayDate();
 
-  // Se já marcou hoje, sair
-  if (habit.lastCheckIn === today) {
+  // Criar histórico se não existir
+  if (!habit.history) habit.history = [];
+
+  // Verifica se já fez check-in hoje
+  if (habit.history.includes(today)) {
     return "alreadyChecked";
   }
 
-  // Se marcou ontem → streak continua
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
+  // Registrar check-in
+  habit.history.push(today);
 
-  if (habit.lastCheckIn === yesterday.toDateString()) {
-    habit.streak += 1;
-  } 
-  else {
-    habit.streak = 1; // reset streak se perdeu o dia
-  }
+  // Atualizar streak
+  updateDailyStreak(habit);
 
-  habit.lastCheckIn = today;
+  saveAllHabits(habits);
 
-  habit.history.push({
-    date: today,
-    status: "completed"
-  });
-
-  saveHabitsToLocalStorage(habits);
-
-  return habit.streak;
+  return habit.streak; // retorna streak atualizado
 }
 
-export function checkWeeklyHabit(id) {
-  const habits = getAllHabits();
-  const habit = habits.find(h => h.id === id);
-  if (!habit) return;
 
+// =====================================
+// STREAK DIÁRIO
+// =====================================
+function updateDailyStreak(habit) {
   const today = new Date();
-  const last = habit.weeklyLastCheck ? new Date(habit.weeklyLastCheck) : null;
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
 
-  // Se nunca fez check-in semanal → começar a streak
-  if (!last) {
-    habit.weeklyLastCheck = today.toISOString();
-    habit.weeklyStreak = 1;
-    saveHabits(habits);
-    return habit.weeklyStreak;
-  }
+  const todayStr = today.toISOString().split("T")[0];
+  const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-  // -------------------------------
-  // VERIFICAR DIFERENÇA EM SEMANAS
-  // -------------------------------
-  const diffDays = Math.floor((today - last) / (1000 * 60 * 60 * 24));
+  if (!habit.streak) habit.streak = 0;
 
-  if (diffDays < 7) {
-    // tentativa dentro da mesma semana
-    return "alreadyChecked"; 
-  }
-
-  if (diffDays <= 14) {
-    // semana seguinte → streak continua
-    habit.weeklyStreak++;
+  if (habit.history.includes(yesterdayStr)) {
+    habit.streak += 1;
   } else {
-    // muito tempo → streak reseta
-    habit.weeklyStreak = 1;
+    habit.streak = 1; // inicia streak
+  }
+}
+
+
+// =====================================
+// CHECK-IN SEMANAL
+// =====================================
+export function weeklyCheckIn(habitId) {
+  const habits = getAllHabits();
+  const habit = habits.find(h => h.id === habitId);
+  if (!habit) return "notFound";
+
+  const week = getCurrentWeek();
+
+  if (!habit.weekHistory) habit.weekHistory = [];
+
+  // Já registrou esta semana?
+  if (habit.weekHistory.includes(week)) {
+    return "alreadyChecked";
   }
 
-  habit.weeklyLastCheck = today.toISOString();
-  saveHabits(habits);
+  habit.weekHistory.push(week);
 
-  return habit.weeklyStreak;
+  updateWeeklyStreak(habit);
+
+  saveAllHabits(habits);
+
+  return habit.weekStreak;
+}
+
+
+// =====================================
+// STREAK SEMANAL
+// =====================================
+function updateWeeklyStreak(habit) {
+  if (!habit.weekStreak) habit.weekStreak = 0;
+
+  const currentWeek = getCurrentWeek();
+  const lastWeek = currentWeek - 1;
+
+  if (habit.weekHistory.includes(lastWeek)) {
+    habit.weekStreak += 1;
+  } else {
+    habit.weekStreak = 1;
+  }
+}
+
+
+// =====================================
+// GET FULL HISTORY
+// =====================================
+export function getHabitHistory(habitId) {
+  const habits = getAllHabits();
+  const habit = habits.find(h => h.id === habitId);
+
+  if (!habit) return null;
+
+  return {
+    daily: habit.history || [],
+    weekly: habit.weekHistory || [],
+    dailyStreak: habit.streak || 0,
+    weeklyStreak: habit.weekStreak || 0
+  };
 }

@@ -1,37 +1,36 @@
-export function addHabit(habit) {}
-export function deleteHabit(id) {}
-export function editHabit(id, updatedData) {}
-export function getAllHabits() {}
-
 import { saveHabitsToLocalStorage, loadHabitsFromLocalStorage } from "./storage.js";
 
-// Inicializa array de hábitos (carrega do LocalStorage)
-let habits = loadHabitsFromLocalStorage() || [];
+// Carregar hábitos
+let habits = loadHabitsFromLocalStorage();
 
 // -------------------------
-// Criar hábito
+// GET ALL HABITS
 // -------------------------
-export function addHabit({ name, category, schedule }) {
+export function getAllHabits() {
+  return habits;
+}
+
+// -------------------------
+// ADD HABIT
+// -------------------------
+export function addHabit(name, category, schedule) {
   const newHabit = {
-    id: Date.now(), // ID único
+    id: Date.now(),
     name,
     category,
     schedule,
-    createdAt: new Date().toISOString(),
     streak: 0,
-    history: [],
-    weeklyLastCheck: null,
-    weeklyStreak: 0,
+    lastCheckIn: null,
+    weeklyCheckIn: null,
+    history: []
   };
 
   habits.push(newHabit);
   saveHabitsToLocalStorage(habits);
-
-  return newHabit;
 }
 
 // -------------------------
-// Deletar hábito
+// DELETE HABIT
 // -------------------------
 export function deleteHabit(id) {
   habits = habits.filter(h => h.id !== id);
@@ -39,39 +38,92 @@ export function deleteHabit(id) {
 }
 
 // -------------------------
-// Editar hábito
+// EDIT HABIT
 // -------------------------
-export function editHabit(id, updatedFields) {
-  habits = habits.map(habit => {
-    if (habit.id === id) {
-      return { ...habit, ...updatedFields };
+export function editHabit(id, updatedData) {
+  const habit = habits.find(h => h.id === id);
+  if (!habit) return;
+
+  habit.name = updatedData.name;
+  habit.category = updatedData.category;
+  habit.schedule = updatedData.schedule;
+
+  saveHabitsToLocalStorage(habits);
+}
+
+// -------------------------
+// DAILY CHECK-IN
+// -------------------------
+export function markDailyCheckIn(id) {
+  const habit = habits.find(h => h.id === id);
+  if (!habit) return;
+
+  const today = new Date().toDateString();
+
+  // Já fez check-in hoje?
+  if (habit.lastCheckIn === today) {
+    alert("You already checked in today!");
+    return;
+  }
+
+  // Checar streak
+  if (habit.lastCheckIn) {
+    const last = new Date(habit.lastCheckIn);
+    const now = new Date();
+    const difference = (now - last) / (1000 * 60 * 60 * 24);
+
+    if (difference < 2) {
+      habit.streak += 1; // manteve
+    } else {
+      habit.streak = 1; // resetou
     }
-    return habit;
+  } else {
+    habit.streak = 1;
+  }
+
+  habit.lastCheckIn = today;
+
+  // Registrar histórico
+  habit.history.push({
+    date: today,
+    type: "daily"
   });
 
   saveHabitsToLocalStorage(habits);
 }
 
 // -------------------------
-// Obter todos os hábitos
+// WEEKLY CHECK-IN
 // -------------------------
-export function getAllHabits() {
-  return habits;
+export function markWeeklyCheckIn(id) {
+  const habit = habits.find(h => h.id === id);
+  if (!habit) return;
+
+  const currentWeek = getWeekNumber(new Date());
+
+ // Já fez essa semana?
+  if (habit.weeklyCheckIn === currentWeek) {
+    alert("You already checked in this week!");
+    return;
+  }
+
+  habit.weeklyCheckIn = currentWeek;
+
+  // Registrar histórico
+  habit.history.push({
+    date: new Date().toDateString(),
+    week: currentWeek,
+    type: "weekly"
+  });
+
+  saveHabitsToLocalStorage(habits);
 }
 
-export function addHabit(habit) {
-  const habits = loadHabits();
-
-  const newHabit = {
-    id: Date.now(),
-    name: habit.name,
-    category: habit.category,
-    schedule: habit.schedule,
-    streak: 0,          // 👈 NOVO
-    lastCheckIn: null,  // 👈 NOVO
-    history: []         // 👈 opcional, para gráficos depois
-  };
-
-  habits.push(newHabit);
-  saveHabits(habits);
+// -------------------------
+// GET WEEK NUMBER (HELPER)
+// -------------------------
+function getWeekNumber(date) {
+  const oneJan = new Date(date.getFullYear(), 0, 1);
+  const numberOfDays = Math.floor((date - oneJan) / (24 * 60 * 60 * 1000));
+  return Math.ceil((date.getDay() + 1 + numberOfDays) / 7);
 }

@@ -202,5 +202,10 @@ function handleWeeklyCheckIn(event) {
 
   alert("Great weekly progress! Your weekly streak is now: " + result + " 📅🔥");
 
-  renderHabits();
+  renderHabits(
+    <button class="weekly-checkin-btn" data-id="${habit.id}">
+    Weekly Check-In
+  </button>
+
+  );
 }
