@@ -38,6 +38,7 @@ export function renderHabits() {
     li.classList.add("habit-item");
     li.dataset.id = habit.id;
 
+    // Criar canvases únicos para os charts de cada hábito
     li.innerHTML = `
       <div class="habit-info">
         <strong>${habit.name}</strong>
@@ -50,12 +51,15 @@ export function renderHabits() {
         <button class="delete-btn" type="button" data-id="${habit.id}">🗑️</button>
       </div>
       <div class="habit-streak">🔥 Streak: <strong>${habit.streak || 0}</strong> days</div>
-      <canvas id="habitChart-${habit.id}" class="habit-chart"></canvas>
+      <div class="habit-charts">
+        <canvas id="weeklyChart-${habit.id}" width="300" height="150"></canvas>
+        <canvas id="monthlyChart-${habit.id}" width="300" height="150"></canvas>
+      </div>
     `;
 
     habitList.appendChild(li);
 
-    // Render charts for each habit
+    // Renderizar os charts desse hábito
     renderChartsForHabit(habit.id);
   });
 }
