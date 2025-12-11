@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Habit Hopper</title>
+  <!-- Chart.js CDN -->
+  <script src="js/main.js"></script>
+  <link rel="stylesheet" href="styles/main.css">
+  <link rel="icon" type="n" href="assets/icons/habits.icon.png"
+</head>
+<body>
+  <header>
+    <h1>Habit Hopper</h1>
+    <button id="themeToggle">🌗</button>
+  </header>
+
+  <main id="app">
+    <section id="quote-of-day"></section>
+
+    <section id="create-habit">
+      <!-- form will be rendered by ui.js -->
+    </section>
+
+    <section id="habit-list"></section>
+
+    <section id="charts">
+      <canvas id="weeklyChart"></canvas>
+      <canvas id="monthlyChart"></canvas>
+    </section>
+
+    <section id="ranking"></section>
+  </main>
+
+  <footer>© Ana Santos</footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

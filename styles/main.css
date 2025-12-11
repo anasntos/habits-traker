@@ -1,0 +1,36 @@
+:root{
+  --bg: #FFF8E7;        /* background cream */
+  --icon: #F5AFCB;      /* pink */
+  --primary: #CDB4DB;   /* purple */
+  --secondary:#A8D8EA;  /* blue */
+  --text: #333;
+  --card-radius: 12px;
+}
+
+/* mobile-first layout */
+body{
+  margin:0;
+  font-family: 'Quicksand', sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  padding:1rem;
+}
+
+/* exemplo de card */
+.habit-card{
+  background:white;
+  border-radius:var(--card-radius);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  padding:1rem;
+  margin-bottom:1rem;
+}
+
+/* cores e botões simplificados */
+.btn{
+  padding:0.6rem 1rem;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  background:var(--primary);
+  color:white;
+}
