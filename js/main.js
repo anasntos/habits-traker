@@ -133,3 +133,55 @@ document.addEventListener("click", (e) => {
 document.addEventListener("DOMContentLoaded", () => {
   renderHabits();
 });
+
+import { sendNotification } from "./notifications.js";
+import { hasCheckedInToday } from "./progressTracker.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderHabits();
+
+  if (!hasCheckedInToday()) {
+    sendNotification("Don't forget your daily check-in! ✨", "warning");
+  }
+});
+import { requestNotificationPermission } from "./notifications.js";
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await requestNotificationPermission();
+});
+
+// -----------------------------------------------------
+// MAIN.JS — ARQUIVO PRINCIPAL DE INICIALIZAÇÃO DO APP
+// -----------------------------------------------------
+
+import { renderHabits } from "./ui.js";
+import { loadDailyQuote } from "./motivation.js";
+import { requestNotificationPermission } from "./notifications.js";
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+  // -----------------------------------------------------
+  // 1) Pedir permissão de notificações AO ABRIR O APP
+  // -----------------------------------------------------
+  requestNotificationPermission();
+
+  // -----------------------------------------------------
+  // 2) Carregar frase motivacional do dia
+  // -----------------------------------------------------
+  try {
+    const quote = await loadDailyQuote();
+    document.getElementById("daily-quote").textContent = quote;
+  } catch (error) {
+    console.warn("Não foi possível carregar a frase motivacional.");
+  }
+
+  // -----------------------------------------------------
+  // 3) Renderizar hábitos salvos no localStorage
+  // -----------------------------------------------------
+  renderHabits();
+
+  // -----------------------------------------------------
+  // 4) (OPCIONAL) Em breve: lembretes automáticos
+  // -----------------------------------------------------
+  // setupDailyReminders();  // só ativar quando implementarmos
+});

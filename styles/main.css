@@ -149,3 +149,41 @@ button {
 .habit-item small {
   opacity: 0.8;
 }
+
+.notification {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: all 0.3s ease-in-out;
+  z-index: 9999;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Visível */
+.notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Cores */
+.notification.info {
+  background: #3b82f6; /* azul */
+}
+
+.notification.success {
+  background: #22c55e; /* verde */
+}
+
+.notification.warning {
+  background: #eab308; /* amarelo */
+}
+
+.notification.error {
+  background: #ef4444; /* vermelho */
+}

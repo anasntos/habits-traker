@@ -1,6 +1,7 @@
 import { loadDailyQuote } from "./motivation.js";
 import { addHabit, getAllHabits, deleteHabit, editHabit } from "./habitManager.js";
 import { checkInHabit } from "./progressTracker.js";
+import { sendBrowserNotification } from "./notifications.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   loadDailyQuote().then(quote => {
@@ -10,9 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
   renderHabits();
 });
 
-// -------------------------
+// -----------------------------------------------------
 // RENDER HABITS
-// -------------------------
+// -----------------------------------------------------
 const habitList = document.getElementById("habit-list");
 
 export function renderHabits() {
@@ -28,11 +29,10 @@ export function renderHabits() {
         <strong>${habit.name}</strong>
         <span>${habit.category}</span>
         <small>${habit.schedule}</small>
-        <small>🔥 Streak: ${habit.streak || 0}</small>
       </div>
 
       <div class="habit-actions">
-        <button class="checkin-btn" data-id="${habit.id}">✔️</button>
+        <button class="checkin-btn" data-id="${habit.id}">✔</button>
         <button class="edit-btn" data-id="${habit.id}">✏️</button>
         <button class="delete-btn" data-id="${habit.id}">🗑️</button>
       </div>
@@ -42,15 +42,43 @@ export function renderHabits() {
   });
 
   addHabitActionEvents();
- document.querySelectorAll(".weekly-checkin-btn").forEach(btn => {
-  btn.addEventListener("click", handleWeeklyCheckIn);
-});
- 
+
+  // adicionar eventos do check-in
+  document.querySelectorAll(".checkin-btn").forEach(btn => {
+    btn.addEventListener("click", handleCheckIn);
+  });
 }
 
-// -------------------------
+// -----------------------------------------------------
+// CHECK-IN HANDLER + NOTIFICAÇÕES
+// -----------------------------------------------------
+function handleCheckIn(event) {
+  const id = Number(event.target.dataset.id);
+
+  const result = checkInHabit(id);
+
+  if (result === "alreadyChecked") {
+    alert("You already completed this habit today!");
+
+    sendBrowserNotification("Already done!", {
+      body: "You already completed this habit today. Keep it up!",
+    });
+
+    return;
+  }
+
+  alert("Great job! Your streak is now: " + result + " 🔥");
+
+  sendBrowserNotification("Daily Check-in ✔", {
+    body: `Nice! Your streak is now ${result} days!`,
+  });
+
+  renderHabits();
+}
+
+// -----------------------------------------------------
 // ADD HABIT MODAL
-// -------------------------
+// -----------------------------------------------------
 const addHabitBtn = document.getElementById("add-habit-btn");
 const modal = document.getElementById("add-habit-modal");
 const overlay = document.getElementById("modal-overlay");
@@ -72,9 +100,9 @@ overlay.addEventListener("click", closeModal);
 
 const saveHabitBtn = document.getElementById("save-habit-btn");
 
-// ------------------------------
-// SAVE NEW HABIT
-// ------------------------------
+// -----------------------------------------------------
+// SAVE NEW HABIT + NOTIFICATION
+// -----------------------------------------------------
 saveHabitBtn.addEventListener("click", () => {
   const name = document.getElementById("habit-name-input").value.trim();
   const category = document.getElementById("habit-category-input").value;
@@ -92,32 +120,28 @@ saveHabitBtn.addEventListener("click", () => {
 
   document.getElementById("habit-name-input").value = "";
   document.getElementById("habit-schedule-input").value = "";
+
+  sendBrowserNotification("New Habit Added!", {
+    body: `${name} has been added to your routine.`,
+  });
 });
 
-// -------------------------
-// DELETE + EDIT + CHECK-IN
-// -------------------------
+// -----------------------------------------------------
+// DELETE + EDIT BUTTON EVENTS
+// -----------------------------------------------------
 function addHabitActionEvents() {
-
-  // DELETE
   document.querySelectorAll(".delete-btn").forEach(btn => {
     btn.addEventListener("click", handleDeleteHabit);
   });
 
-  // EDIT
   document.querySelectorAll(".edit-btn").forEach(btn => {
     btn.addEventListener("click", openEditModal);
   });
-
-  // CHECK-IN
-  document.querySelectorAll(".checkin-btn").forEach(btn => {
-    btn.addEventListener("click", handleCheckIn);
-  });
 }
 
-// -------------------------
-// DELETE HABIT
-// -------------------------
+// -----------------------------------------------------
+// DELETE HABIT + NOTIFICATION
+// -----------------------------------------------------
 function handleDeleteHabit(event) {
   const id = Number(event.target.dataset.id);
 
@@ -125,22 +149,15 @@ function handleDeleteHabit(event) {
 
   deleteHabit(id);
   renderHabits();
+
+  sendBrowserNotification("Habit Deleted", {
+    body: "The habit was removed successfully.",
+  });
 }
 
-// -------------------------
-// CHECK-IN
-// -------------------------
-function handleCheckIn(event) {
-  const id = Number(event.target.dataset.id);
-
-  checkInHabit(id);
-
-  renderHabits();
-}
-
-// -------------------------
+// -----------------------------------------------------
 // EDIT HABIT MODAL
-// -------------------------
+// -----------------------------------------------------
 const editModal = document.getElementById("edit-habit-modal");
 const cancelEditBtn = document.getElementById("cancel-edit-btn");
 const saveEditBtn = document.getElementById("save-edit-btn");
@@ -169,9 +186,9 @@ function closeEditModal() {
 
 cancelEditBtn.addEventListener("click", closeEditModal);
 
-// ------------------------------
-// SAVE EDITED HABIT
-// ------------------------------
+// -----------------------------------------------------
+// SAVE EDITED HABIT + NOTIFICATION
+// -----------------------------------------------------
 saveEditBtn.addEventListener("click", () => {
   const name = document.getElementById("edit-habit-name").value.trim();
   const category = document.getElementById("edit-habit-category").value;
@@ -184,28 +201,10 @@ saveEditBtn.addEventListener("click", () => {
 
   editHabit(habitBeingEdited.id, { name, category, schedule });
 
-  renderHabits(
-    <button class="weekly-checkin-btn" data-id="${habit.id}">📅</button>
-  );
+  renderHabits();
   closeEditModal();
+
+  sendBrowserNotification("Habit Updated!", {
+    body: `${name} was successfully updated.`,
+  });
 });
-
-function handleWeeklyCheckIn(event) {
-  const id = Number(event.target.dataset.id);
-
-  const result = checkWeeklyHabit(id);
-
-  if (result === "alreadyChecked") {
-    alert("You've already checked in this habit this week!");
-    return;
-  }
-
-  alert("Great weekly progress! Your weekly streak is now: " + result + " 📅🔥");
-
-  renderHabits(
-    <button class="weekly-checkin-btn" data-id="${habit.id}">
-    Weekly Check-In
-  </button>
-
-  );
-}
