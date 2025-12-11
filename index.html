@@ -57,6 +57,41 @@
                 </div>
             </div>
         </div>
+        <!-- EDIT HABIT MODAL -->
+         <div id="edit-habit-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Edit Habit</h2>
+                <label>
+                    Habit Name:
+                    <input type="text" id="edit-habit-name">
+                </label>
+                <label>
+                    Category:
+                    <select id="edit-habit-category">
+                        <option value="Health">Health</option>
+                        <option value="Study">Study</option>
+                        <option value="Work">Work</option>
+                        <option value="Personal">Personal</option>
+                    </select>
+                </label>
+                <label>
+                    Schedule:
+                    <input type="time" id="edit-habit-schedule">
+                </label>
+                <div class="modal-buttons">
+                    <button id="cancel-edit-btn" class="cancel-btn">Cancel</button>
+                    <button id="save-edit-btn" class="save-btn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+        <div class="habit-actions">
+            <button class="checkin-btn" data-id="${habit.id}">✅</button>
+            <button class="edit-btn" data-id="${habit.id}">✏️</button>
+            <button class="delete-btn" data-id="${habit.id}">🗑️</button>
+        </div>
+        <div class="habit-streak">
+            🔥 Streak: <strong>${habit.streak}</strong> days
+        </div>
 
     </main>
 

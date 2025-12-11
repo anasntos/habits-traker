@@ -20,6 +20,8 @@ export function addHabit({ name, category, schedule }) {
     createdAt: new Date().toISOString(),
     streak: 0,
     history: [],
+    weeklyLastCheck: null,
+    weeklyStreak: 0,
   };
 
   habits.push(newHabit);
@@ -55,4 +57,21 @@ export function editHabit(id, updatedFields) {
 // -------------------------
 export function getAllHabits() {
   return habits;
+}
+
+export function addHabit(habit) {
+  const habits = loadHabits();
+
+  const newHabit = {
+    id: Date.now(),
+    name: habit.name,
+    category: habit.category,
+    schedule: habit.schedule,
+    streak: 0,          // 👈 NOVO
+    lastCheckIn: null,  // 👈 NOVO
+    history: []         // 👈 opcional, para gráficos depois
+  };
+
+  habits.push(newHabit);
+  saveHabits(habits);
 }
