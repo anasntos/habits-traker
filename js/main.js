@@ -1,26 +1,38 @@
-// IMPORTS
-import { addHabit, deleteHabit, editHabit, markDailyCheckIn, markWeeklyCheckIn, getAllHabits } from "./habitManager.js";
+//-----------------------------------------------------
+// MAIN.JS — ARQUIVO PRINCIPAL DO APP
+//-----------------------------------------------------
+
+// IMPORTAÇÕES PRINCIPAIS
+import { 
+  addHabit, 
+  deleteHabit, 
+  editHabit, 
+  markDailyCheckIn, 
+  markWeeklyCheckIn, 
+  getAllHabits 
+} from "./habitManager.js";
+
 import { renderHabits } from "./ui.js";
+import { loadDailyQuote } from "./motivation.js";
+import { sendNotification, requestNotificationPermission } from "./notifications.js";
+import { hasCheckedInToday } from "./progressTracker.js";
 
 // ==========================
-//        MODAL: ADD
+// MODAL: ADD HABIT
 // ==========================
 const addHabitBtn = document.getElementById("add-habit-btn");
 const addHabitModal = document.getElementById("addHabitModal");
 const closeAddModalBtn = document.getElementById("closeAddModal");
 const saveHabitBtn = document.getElementById("saveHabitBtn");
 
-// Abrir modal de adicionar hábito
 addHabitBtn.addEventListener("click", () => {
   addHabitModal.style.display = "flex";
 });
 
-// Fechar modal
 closeAddModalBtn.addEventListener("click", () => {
   addHabitModal.style.display = "none";
 });
 
-// Salvar novo hábito
 saveHabitBtn.addEventListener("click", () => {
   const name = document.getElementById("habit-name").value.trim();
   const category = document.getElementById("habit-category").value;
@@ -38,7 +50,7 @@ saveHabitBtn.addEventListener("click", () => {
 
 
 // ==========================
-//        MODAL: EDIT
+// MODAL: EDIT HABIT
 // ==========================
 const editHabitModal = document.getElementById("editHabitModal");
 const closeEditModalBtn = document.getElementById("closeEditModal");
@@ -46,7 +58,6 @@ const saveEditBtn = document.getElementById("saveEditBtn");
 
 let habitBeingEdited = null;
 
-// Abrir modal de edição
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("edit-btn")) {
     const id = Number(e.target.dataset.id);
@@ -64,12 +75,10 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// Fechar modal
 closeEditModalBtn.addEventListener("click", () => {
   editHabitModal.style.display = "none";
 });
 
-// Salvar edição
 saveEditBtn.addEventListener("click", () => { 
   const name = document.getElementById("edit-habit-name").value.trim();
   const category = document.getElementById("edit-habit-category").value;
@@ -80,11 +89,7 @@ saveEditBtn.addEventListener("click", () => {
     return;
   }
 
-  editHabit(habitBeingEdited.id, {
-    name,
-    category,
-    schedule
-  });
+  editHabit(habitBeingEdited.id, { name, category, schedule });
 
   renderHabits();
   editHabitModal.style.display = "none";
@@ -92,7 +97,7 @@ saveEditBtn.addEventListener("click", () => {
 
 
 // ==========================
-//     DELETE HABIT
+// DELETE HABIT
 // ==========================
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("delete-btn")) {
@@ -104,7 +109,7 @@ document.addEventListener("click", (e) => {
 
 
 // ==========================
-//     CHECK-IN DIÁRIO
+// CHECK-IN: DIÁRIO & SEMANAL
 // ==========================
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("daily-checkin-btn")) {
@@ -112,13 +117,7 @@ document.addEventListener("click", (e) => {
     markDailyCheckIn(id);
     renderHabits();
   }
-});
 
-
-// ==========================
-//     CHECK-IN SEMANAL
-// ==========================
-document.addEventListener("click", (e) => {
   if (e.target.classList.contains("weekly-checkin-btn")) {
     const id = Number(e.target.dataset.id);
     markWeeklyCheckIn(id);
@@ -128,60 +127,26 @@ document.addEventListener("click", (e) => {
 
 
 // ==========================
-//     INICIALIZAÇÃO
+// INICIALIZAÇÃO DO APP
 // ==========================
-document.addEventListener("DOMContentLoaded", () => {
-  renderHabits();
-});
-
-import { sendNotification } from "./notifications.js";
-import { hasCheckedInToday } from "./progressTracker.js";
-
-document.addEventListener("DOMContentLoaded", () => {
-  renderHabits();
-
-  if (!hasCheckedInToday()) {
-    sendNotification("Don't forget your daily check-in! ✨", "warning");
-  }
-});
-import { requestNotificationPermission } from "./notifications.js";
-
 document.addEventListener("DOMContentLoaded", async () => {
+
+  // 1. Notificações
   await requestNotificationPermission();
-});
 
-// -----------------------------------------------------
-// MAIN.JS — ARQUIVO PRINCIPAL DE INICIALIZAÇÃO DO APP
-// -----------------------------------------------------
-
-import { renderHabits } from "./ui.js";
-import { loadDailyQuote } from "./motivation.js";
-import { requestNotificationPermission } from "./notifications.js";
-
-document.addEventListener("DOMContentLoaded", async () => {
-
-  // -----------------------------------------------------
-  // 1) Pedir permissão de notificações AO ABRIR O APP
-  // -----------------------------------------------------
-  requestNotificationPermission();
-
-  // -----------------------------------------------------
-  // 2) Carregar frase motivacional do dia
-  // -----------------------------------------------------
+  // 2. Frase motivacional
   try {
     const quote = await loadDailyQuote();
     document.getElementById("daily-quote").textContent = quote;
-  } catch (error) {
-    console.warn("Não foi possível carregar a frase motivacional.");
+  } catch (err) {
+    console.warn("Frase motivacional não pôde ser carregada.");
   }
 
-  // -----------------------------------------------------
-  // 3) Renderizar hábitos salvos no localStorage
-  // -----------------------------------------------------
+  // 3. Renderizar hábitos
   renderHabits();
 
-  // -----------------------------------------------------
-  // 4) (OPCIONAL) Em breve: lembretes automáticos
-  // -----------------------------------------------------
-  // setupDailyReminders();  // só ativar quando implementarmos
+  // 4. Notificar se não fez check-in ainda hoje
+  if (!hasCheckedInToday()) {
+    sendNotification("Don't forget your daily check-in! ✨");
+  }
 });

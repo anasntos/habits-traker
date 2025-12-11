@@ -18,20 +18,21 @@
     </header>
 
     <main>
-      <section id="quote-section">
-        <p id="daily-quote">Loading daily quote...</p>
-      </section>
-
-      <section id="habit-section">
-        <h2>Your Habits</h2>
-        <ul id="habit-list"></ul>
-
-        <button id="add-habit-btn">Add New Habit</button>
-      </section>
-      <!-- MODAL OVERLAY -->
-       <div id="modal-overlay" class="modal-overlay hidden"></div>
-       <!-- ADD HABIT MODAL -->
-        <div id="add-habit-modal" class="modal hidden">
+        <!-- Quote Section -->
+         <section id="quote-section">
+            <p id="daily-quote">Loading daily quote...</p>
+        </section>
+        <!-- Habit Section -->
+         <section id="habit-section">
+            <h2>Your Habits</h2>
+            <ul id="habit-list"></ul>
+            
+            <button id="add-habit-btn">Add New Habit</button>
+        </section>
+        <!-- MODALS -->
+         <div id="modal-overlay" class="modal-overlay hidden"></div>
+         <!-- Add Habit Modal -->
+          <div id="add-habit-modal" class="modal hidden">
             <div class="modal-content">
                 <h2>Add New Habit</h2>
                 <label>
@@ -57,7 +58,7 @@
                 </div>
             </div>
         </div>
-        <!-- EDIT HABIT MODAL -->
+        <!-- Edit Habit Modal -->
          <div id="edit-habit-modal" class="modal hidden">
             <div class="modal-content">
                 <h2>Edit Habit</h2>
@@ -84,17 +85,12 @@
                 </div>
             </div>
         </div>
-        <div class="habit-actions">
-            <button class="checkin-btn" data-id="${habit.id}">✅</button>
-            <button class="edit-btn" data-id="${habit.id}">✏️</button>
-            <button class="delete-btn" data-id="${habit.id}">🗑️</button>
-        </div>
-        <div class="habit-streak">
-            🔥 Streak: <strong>${habit.streak}</strong> days
-        </div>
-        <button id="weeklyCheckinBtn">Weekly Check-In</button>
-        <p id="weeklyCheckinMessage"></p>
-
+        <!-- Charts Section -->
+         <section id="charts-section">
+            <h2>Progress</h2>
+            <canvas id="weeklyChart"></canvas>
+            <canvas id="monthlyChart"></canvas>
+        </section>
     </main>
 
     <footer>

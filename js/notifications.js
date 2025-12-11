@@ -21,7 +21,6 @@ export async function requestNotificationPermission() {
 // -----------------------------------------------------
 export function sendBrowserNotification(title, options = {}) {
   if (!("Notification" in window)) return;
-
   if (Notification.permission !== "granted") return;
 
   new Notification(title, {
@@ -35,9 +34,11 @@ export function sendBrowserNotification(title, options = {}) {
 
 // -----------------------------------------------------
 // SCHEDULE A NOTIFICATION FOR LATER
-// (Local scheduling - triggers even if tab is in background)
 // -----------------------------------------------------
 export function scheduleNotification(delayMs, title, options = {}) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+
   setTimeout(() => {
     sendBrowserNotification(title, options);
   }, delayMs);

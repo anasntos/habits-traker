@@ -1,6 +1,6 @@
 import { saveHabitsToLocalStorage, loadHabitsFromLocalStorage } from "./storage.js";
 
-// Carregar hábitos
+// Carregar hábitos do localStorage
 let habits = loadHabitsFromLocalStorage();
 
 // -------------------------
@@ -19,10 +19,16 @@ export function addHabit(name, category, schedule) {
     name,
     category,
     schedule,
+
+    // Controle de progresso
     streak: 0,
     lastCheckIn: null,
-    weeklyCheckIn: null,
-    history: []
+
+    // Histórico compatível com progressTracker + charts
+    history: {
+      daily: [],
+      weekly: []
+    }
   };
 
   habits.push(newHabit);
@@ -58,36 +64,29 @@ export function markDailyCheckIn(id) {
   const habit = habits.find(h => h.id === id);
   if (!habit) return;
 
-  const today = new Date().toDateString();
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0]; // YYYY-MM-DD
 
-  // Já fez check-in hoje?
-  if (habit.lastCheckIn === today) {
+  // Já feito hoje?
+  if (habit.lastCheckIn === todayStr) {
     alert("You already checked in today!");
     return;
   }
 
-  // Checar streak
+  // Calcular streak
   if (habit.lastCheckIn) {
     const last = new Date(habit.lastCheckIn);
-    const now = new Date();
-    const difference = (now - last) / (1000 * 60 * 60 * 24);
+    const diff = (today - last) / (1000 * 60 * 60 * 24);
 
-    if (difference < 2) {
-      habit.streak += 1; // manteve
-    } else {
-      habit.streak = 1; // resetou
-    }
+    habit.streak = diff < 2 ? habit.streak + 1 : 1;
   } else {
     habit.streak = 1;
   }
 
-  habit.lastCheckIn = today;
+  habit.lastCheckIn = todayStr;
 
-  // Registrar histórico
-  habit.history.push({
-    date: today,
-    type: "daily"
-  });
+  // Registrar no histórico
+  habit.history.daily.push(todayStr);
 
   saveHabitsToLocalStorage(habits);
 }
@@ -101,29 +100,22 @@ export function markWeeklyCheckIn(id) {
 
   const currentWeek = getWeekNumber(new Date());
 
- // Já fez essa semana?
-  if (habit.weeklyCheckIn === currentWeek) {
+  // Já registrado esta semana?
+  if (habit.history.weekly.includes(currentWeek)) {
     alert("You already checked in this week!");
     return;
   }
 
-  habit.weeklyCheckIn = currentWeek;
-
-  // Registrar histórico
-  habit.history.push({
-    date: new Date().toDateString(),
-    week: currentWeek,
-    type: "weekly"
-  });
+  habit.history.weekly.push(currentWeek);
 
   saveHabitsToLocalStorage(habits);
 }
 
 // -------------------------
-// GET WEEK NUMBER (HELPER)
+// HELPER: GET WEEK NUMBER
 // -------------------------
 function getWeekNumber(date) {
-  const oneJan = new Date(date.getFullYear(), 0, 1);
-  const numberOfDays = Math.floor((date - oneJan) / (24 * 60 * 60 * 1000));
-  return Math.ceil((date.getDay() + 1 + numberOfDays) / 7);
+  const firstDay = new Date(date.getFullYear(), 0, 1);
+  const pastDays = Math.floor((date - firstDay) / 86400000);
+  return Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
 }
