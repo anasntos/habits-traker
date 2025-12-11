@@ -1,43 +1,58 @@
-// habitManager.js
-import { saveHabitsToLocalStorage, loadHabitsFromLocalStorage } from './storage.js';
-import { initOrUpdateStreakOnCreate } from './progressTracker.js';
+export function addHabit(habit) {}
+export function deleteHabit(id) {}
+export function editHabit(id, updatedData) {}
+export function getAllHabits() {}
 
-let habits = loadHabitsFromLocalStorage();
+import { saveHabitsToLocalStorage, loadHabitsFromLocalStorage } from "./storage.js";
 
-export function getAllHabits(){ return habits; }
+// Inicializa array de hábitos (carrega do LocalStorage)
+let habits = loadHabitsFromLocalStorage() || [];
 
-export function addHabit(habit){
-  // habit: { id, name, category, schedule: {days:[0..6]}, startDate, xp, history: [] }
-  habit.id = Date.now().toString();
-  habit.xp = habit.xp || 0;
-  habit.history = habit.history || []; // array of dates completed
-  habits.push(habit);
+// -------------------------
+// Criar hábito
+// -------------------------
+export function addHabit({ name, category, schedule }) {
+  const newHabit = {
+    id: Date.now(), // ID único
+    name,
+    category,
+    schedule,
+    createdAt: new Date().toISOString(),
+    streak: 0,
+    history: [],
+  };
+
+  habits.push(newHabit);
   saveHabitsToLocalStorage(habits);
-  initOrUpdateStreakOnCreate(habit);
-  return habit;
+
+  return newHabit;
 }
 
-export function deleteHabit(id){
-  habits = habits.filter(h=> h.id !== id);
+// -------------------------
+// Deletar hábito
+// -------------------------
+export function deleteHabit(id) {
+  habits = habits.filter(h => h.id !== id);
   saveHabitsToLocalStorage(habits);
 }
 
-export function editHabit(id, updates){
-  const idx = habits.findIndex(h=> h.id === id);
-  if(idx === -1) return null;
-  habits[idx] = {...habits[idx], ...updates};
+// -------------------------
+// Editar hábito
+// -------------------------
+export function editHabit(id, updatedFields) {
+  habits = habits.map(habit => {
+    if (habit.id === id) {
+      return { ...habit, ...updatedFields };
+    }
+    return habit;
+  });
+
   saveHabitsToLocalStorage(habits);
-  return habits[idx];
 }
 
-export function markHabitCompleted(id, date = (new Date()).toISOString()){
-  const h = habits.find(h=> h.id === id);
-  if(!h) return null;
-  // prevent duplicate completion on same day (compare YYYY-MM-DD)
-  const dayKey = date.slice(0,10);
-  if(h.history.includes(dayKey)) return h;
-  h.history.push(dayKey);
-  // add XP when finishing a 21-day phase handled in progressTracker
-  saveHabitsToLocalStorage(habits);
-  return h;
+// -------------------------
+// Obter todos os hábitos
+// -------------------------
+export function getAllHabits() {
+  return habits;
 }

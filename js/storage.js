@@ -1,18 +1,20 @@
-// storage.js
-export function saveHabitsToLocalStorage(habits){
-  try{
-    localStorage.setItem('habits', JSON.stringify(habits));
-  }catch(e){
-    console.error('Storage save failed', e);
+export function saveHabitsToLocalStorage(habits) {}
+export function loadHabitsFromLocalStorage() {}
+
+export function saveHabitsToLocalStorage(habits) {
+  try {
+    localStorage.setItem("habit-hopper-habits", JSON.stringify(habits));
+  } catch (err) {
+    console.error("Erro ao salvar hábitos:", err);
   }
 }
 
-export function loadHabitsFromLocalStorage(){
-  try{
-    const raw = localStorage.getItem('habits');
-    return raw ? JSON.parse(raw) : [];
-  }catch(e){
-    console.error('Storage load failed', e);
+export function loadHabitsFromLocalStorage() {
+  try {
+    const data = localStorage.getItem("habit-hopper-habits");
+    return data ? JSON.parse(data) : [];
+  } catch (err) {
+    console.error("Erro ao carregar hábitos:", err);
     return [];
   }
 }

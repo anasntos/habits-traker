@@ -1,42 +1,96 @@
-// ui.js (excert)
-import { getAllHabits, addHabit, markHabitCompleted } from './habitManager.js';
-import { fetchQuoteOfDay } from './motivation.js';
-import { createWeeklyChart } from './charts.js';
+import { loadDailyQuote } from "./motivation.js";
 
-export async function initUI(){
-  const quoteEl = document.getElementById('quote-of-day');
-  const q = await fetchQuoteOfDay();
-  quoteEl.innerHTML = `<blockquote>"${q.text}" — <small>${q.author}</small></blockquote>`;
+document.addEventListener("DOMContentLoaded", () => {
+  loadDailyQuote().then(quote => {
+    document.getElementById("daily-quote").textContent = quote;
+  });
+});
 
-  renderCreateHabitForm();
-  renderHabitList();
-}
+import { addHabit, getAllHabits } from "./habitManager.js";
 
-function renderCreateHabitForm(){
-  // create a small form for adding habit
-  // on submit call addHabit(...)
-}
+// -------------------------
+// RENDER HABITS ON SCREEN
+// -------------------------
+const habitList = document.getElementById("habit-list");
 
-function renderHabitList(){
-  const list = document.getElementById('habit-list');
-  list.innerHTML = '';
+export function renderHabits() {
   const habits = getAllHabits();
-  habits.forEach(h=>{
-    const card = document.createElement('div');
-    card.className = 'habit-card';
-    card.innerHTML = `
-      <h3>${h.name}</h3>
-      <p>Categoria: ${h.category || '—'}</p>
-      <button class="checkbtn" data-id="${h.id}">Check In</button>
-    `;
-    list.appendChild(card);
-  });
+  habitList.innerHTML = "";
 
-  list.querySelectorAll('.checkbtn').forEach(btn=>{
-    btn.addEventListener('click', async e=>{
-      const id = e.target.dataset.id;
-      await markHabitCompleted(id);
-      renderHabitList(); // update UI
-    });
+  habits.forEach(habit => {
+    const li = document.createElement("li");
+    li.classList.add("habit-item");
+    li.innerHTML = `
+      <strong>${habit.name}</strong>
+      <span>${habit.category}</span>
+      <small>${habit.schedule}</small>
+    `;
+
+    habitList.appendChild(li);
   });
 }
+
+// Render na inicialização
+document.addEventListener("DOMContentLoaded", renderHabits);
+
+// -------------------------
+// MODAL CONTROL
+// -------------------------
+const addHabitBtn = document.getElementById("add-habit-btn");
+const modal = document.getElementById("add-habit-modal");
+const overlay = document.getElementById("modal-overlay");
+const cancelBtn = document.getElementById("cancel-habit-btn");
+
+function openModal() {
+  modal.classList.remove("hidden");
+  overlay.classList.remove("hidden");
+}
+
+function closeModal() {
+  modal.classList.add("hidden");
+  overlay.classList.add("hidden");
+}
+
+addHabitBtn.addEventListener("click", openModal);
+cancelBtn.addEventListener("click", closeModal);
+overlay.addEventListener("click", closeModal);
+
+const saveHabitBtn = document.getElementById("save-habit-btn");
+
+saveHabitBtn.addEventListener("click", () => {
+  const name = document.getElementById("habit-name-input").value.trim();
+  const category = document.getElementById("habit-category-input").value;
+  const schedule = document.getElementById("habit-schedule-input").value;
+
+  // -------------------------
+  // VALIDATION
+  // -------------------------
+  if (!name) {
+    alert("Please enter a habit name.");
+    return;
+  }
+
+  if (!schedule) {
+    alert("Please choose a schedule time.");
+    return;
+  }
+
+  // -------------------------
+  // CREATE HABIT
+  // -------------------------
+  addHabit({
+    name,
+    category,
+    schedule
+  });
+
+  // -------------------------
+  // UI UPDATE
+  // -------------------------
+  renderHabits();   // atualiza lista
+  closeModal();     // fecha modal
+
+  // limpar campos
+  document.getElementById("habit-name-input").value = "";
+  document.getElementById("habit-schedule-input").value = "";
+});

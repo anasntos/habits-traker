@@ -1,39 +1,70 @@
 <!doctype html>
-<html lang="pt-BR">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Habit Hopper</title>
-  <!-- Chart.js CDN -->
-  <script src="js/main.js"></script>
-  <link rel="stylesheet" href="styles/main.css">
-  <link rel="icon" type="n" href="assets/icons/habits.icon.png"
-</head>
-<body>
-  <header>
-    <h1>Habit Hopper</h1>
-    <button id="themeToggle">🌗</button>
-  </header>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Hopper</title>
 
-  <main id="app">
-    <section id="quote-of-day"></section>
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+  </head>
 
-    <section id="create-habit">
-      <!-- form will be rendered by ui.js -->
-    </section>
+  <body>
+    <header>
+      <h1>Habit Hopper</h1>
+      <nav>
+        <!-- future buttons or menu -->
+      </nav>
+    </header>
 
-    <section id="habit-list"></section>
+    <main>
+      <section id="quote-section">
+        <p id="daily-quote">Loading daily quote...</p>
+      </section>
 
-    <section id="charts">
-      <canvas id="weeklyChart"></canvas>
-      <canvas id="monthlyChart"></canvas>
-    </section>
+      <section id="habit-section">
+        <h2>Your Habits</h2>
+        <ul id="habit-list"></ul>
 
-    <section id="ranking"></section>
-  </main>
+        <button id="add-habit-btn">Add New Habit</button>
+      </section>
+      <!-- MODAL OVERLAY -->
+       <div id="modal-overlay" class="modal-overlay hidden"></div>
+       <!-- ADD HABIT MODAL -->
+        <div id="add-habit-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Add New Habit</h2>
+                <label>
+                    Habit Name:
+                    <input type="text" id="habit-name-input" placeholder="Ex: Drink Water">
+                </label>
+                <label>
+                    Category:
+                    <select id="habit-category-input">
+                        <option value="Health">Health</option>
+                        <option value="Study">Study</option>
+                        <option value="Work">Work</option>
+                        <option value="Personal">Personal</option>
+                    </select>
+                </label>
+                <label>
+                    Schedule:
+                    <input type="time" id="habit-schedule-input">
+                </label>
+                <div class="modal-buttons">
+                    <button id="cancel-habit-btn" class="cancel-btn">Cancel</button>
+                    <button id="save-habit-btn" class="save-btn">Save Habit</button>
+                </div>
+            </div>
+        </div>
 
-  <footer>© Ana Santos</footer>
+    </main>
 
-  <script type="module" src="js/main.js"></script>
-</body>
+    <footer>
+      <p>&copy; 2025 Habit Hopper</p>
+    </footer>
+
+    <!-- JS Modules -->
+    <script type="module" src="js/ui.js"></script>
+  </body>
 </html>
