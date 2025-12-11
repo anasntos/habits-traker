@@ -1,152 +1,106 @@
-//-----------------------------------------------------
-// MAIN.JS — ARQUIVO PRINCIPAL DO APP
-//-----------------------------------------------------
+// =====================================================
+// progressTracker.js — TRACKER DE CHECK-INS
+// =====================================================
 
-// IMPORTAÇÕES PRINCIPAIS
-import { 
-  addHabit, 
-  deleteHabit, 
-  editHabit, 
-  markDailyCheckIn, 
-  markWeeklyCheckIn, 
-  getAllHabits 
-} from "./habitManager.js";
-
-import { renderHabits } from "./ui.js";
-import { loadDailyQuote } from "./motivation.js";
-import { sendNotification, requestNotificationPermission } from "./notifications.js";
-import { hasCheckedInToday } from "./progressTracker.js";
+import { getAllHabits, saveAllHabits } from "./habitManager.js";
 
 // ==========================
-// MODAL: ADD HABIT
+// HELPER: DATA
 // ==========================
-const addHabitBtn = document.getElementById("add-habit-btn");
-const addHabitModal = document.getElementById("addHabitModal");
-const closeAddModalBtn = document.getElementById("closeAddModal");
-const saveHabitBtn = document.getElementById("saveHabitBtn");
+function getTodayDate() {
+    return new Date().toISOString().split("T")[0];
+}
 
-addHabitBtn.addEventListener("click", () => {
-  addHabitModal.style.display = "flex";
-});
-
-closeAddModalBtn.addEventListener("click", () => {
-  addHabitModal.style.display = "none";
-});
-
-saveHabitBtn.addEventListener("click", () => {
-  const name = document.getElementById("habit-name").value.trim();
-  const category = document.getElementById("habit-category").value;
-  const schedule = document.getElementById("habit-schedule").value;
-
-  if (!name || !schedule) {
-    alert("All fields are required.");
-    return;
-  }
-
-  addHabit(name, category, schedule);
-  renderHabits();
-  addHabitModal.style.display = "none";
-});
-
+function getCurrentWeek() {
+    const date = new Date();
+    const oneJan = new Date(date.getFullYear(), 0, 1);
+    const numberOfDays = Math.floor((date - oneJan) / (24 * 60 * 60 * 1000));
+    return Math.ceil((date.getDay() + 1 + numberOfDays) / 7);
+}
 
 // ==========================
-// MODAL: EDIT HABIT
+// CHECK-IN DIÁRIO
 // ==========================
-const editHabitModal = document.getElementById("editHabitModal");
-const closeEditModalBtn = document.getElementById("closeEditModal");
-const saveEditBtn = document.getElementById("saveEditBtn");
+export function checkInHabit(habitId) {
+    const habits = getAllHabits();
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return "notFound";
 
-let habitBeingEdited = null;
+    const today = getTodayDate();
+    if (!habit.history) habit.history = [];
 
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("edit-btn")) {
-    const id = Number(e.target.dataset.id);
-    const habit = getAllHabits().find(h => h.id === id);
+    // Já fez check-in hoje?
+    if (habit.history.includes(today)) return "alreadyChecked";
 
-    if (!habit) return;
+    habit.history.push(today);
+    updateDailyStreak(habit);
+    saveAllHabits(habits);
 
-    habitBeingEdited = habit;
+    return habit.streak;
+}
 
-    document.getElementById("edit-habit-name").value = habit.name;
-    document.getElementById("edit-habit-category").value = habit.category;
-    document.getElementById("edit-habit-schedule").value = habit.schedule;
+function updateDailyStreak(habit) {
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
 
-    editHabitModal.style.display = "flex";
-  }
-});
+    const todayStr = today.toISOString().split("T")[0];
+    const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-closeEditModalBtn.addEventListener("click", () => {
-  editHabitModal.style.display = "none";
-});
-
-saveEditBtn.addEventListener("click", () => { 
-  const name = document.getElementById("edit-habit-name").value.trim();
-  const category = document.getElementById("edit-habit-category").value;
-  const schedule = document.getElementById("edit-habit-schedule").value;
-
-  if (!name || !schedule) {
-    alert("All fields are required.");
-    return;
-  }
-
-  editHabit(habitBeingEdited.id, { name, category, schedule });
-
-  renderHabits();
-  editHabitModal.style.display = "none";
-});
-
+    if (!habit.streak) habit.streak = 0;
+    habit.streak = habit.history.includes(yesterdayStr) ? habit.streak + 1 : 1;
+}
 
 // ==========================
-// DELETE HABIT
+// CHECK-IN SEMANAL
 // ==========================
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("delete-btn")) {
-    const id = Number(e.target.dataset.id);
-    deleteHabit(id);
-    renderHabits();
-  }
-});
+export function weeklyCheckIn(habitId) {
+    const habits = getAllHabits();
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return "notFound";
 
+    const week = getCurrentWeek();
+    if (!habit.weekHistory) habit.weekHistory = [];
 
-// ==========================
-// CHECK-IN: DIÁRIO & SEMANAL
-// ==========================
-document.addEventListener("click", (e) => {
-  if (e.target.classList.contains("daily-checkin-btn")) {
-    const id = Number(e.target.dataset.id);
-    markDailyCheckIn(id);
-    renderHabits();
-  }
+    if (habit.weekHistory.includes(week)) return "alreadyChecked";
 
-  if (e.target.classList.contains("weekly-checkin-btn")) {
-    const id = Number(e.target.dataset.id);
-    markWeeklyCheckIn(id);
-    renderHabits();
-  }
-});
+    habit.weekHistory.push(week);
+    updateWeeklyStreak(habit);
+    saveAllHabits(habits);
 
+    return habit.weekStreak;
+}
+
+function updateWeeklyStreak(habit) {
+    if (!habit.weekStreak) habit.weekStreak = 0;
+
+    const currentWeek = getCurrentWeek();
+    const lastWeek = currentWeek - 1;
+    habit.weekStreak = habit.weekHistory.includes(lastWeek) ? habit.weekStreak + 1 : 1;
+}
 
 // ==========================
-// INICIALIZAÇÃO DO APP
+// CHECK-IN AUTOMÁTICO HOJE
 // ==========================
-document.addEventListener("DOMContentLoaded", async () => {
+export function hasCheckedInToday() {
+    const habits = getAllHabits();
+    const today = getTodayDate();
 
-  // 1. Notificações
-  await requestNotificationPermission();
+    return habits.some(habit => habit.history && habit.history.includes(today));
+}
 
-  // 2. Frase motivacional
-  try {
-    const quote = await loadDailyQuote();
-    document.getElementById("daily-quote").textContent = quote;
-  } catch (err) {
-    console.warn("Frase motivacional não pôde ser carregada.");
-  }
+// ==========================
+// GET HISTÓRICO COMPLETO
+// ==========================
+export function getHabitHistory(habitId) {
+    const habits = getAllHabits();
+    const habit = habits.find(h => h.id === habitId);
+    if (!habit) return null;
 
-  // 3. Renderizar hábitos
-  renderHabits();
-
-  // 4. Notificar se não fez check-in ainda hoje
-  if (!hasCheckedInToday()) {
-    sendNotification("Don't forget your daily check-in! ✨");
-  }
-});
+    return {
+        daily: habit.history || [],
+        weekly: habit.weekHistory || [],
+        dailyStreak: habit.streak || 0,
+        weeklyStreak: habit.weekStreak || 0
+    };
+}
