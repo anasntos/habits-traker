@@ -170,3 +170,9 @@ habitList.addEventListener("click", (e) => {
     sendBrowserNotification("Habit Deleted", { body: "The habit was removed successfully." });
   }
 });
+
+import { showHolidayMessage } from "./calendar.js";
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await showHolidayMessage(); // Mostra mensagem de feriado, se houver
+});

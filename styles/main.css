@@ -150,6 +150,18 @@ button {
   opacity: 0.8;
 }
 
+.habit-actions {
+  margin-top: 5px;
+  display: flex;
+  gap: 5px;
+}
+
+.habit-streak {
+  margin-top: 5px;
+  font-weight: bold;
+}
+
+/* Notifications */
 .notification {
   position: fixed;
   right: 20px;
@@ -165,25 +177,22 @@ button {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-/* Visível */
 .notification.show {
   opacity: 1;
   transform: translateY(0);
 }
 
-/* Cores */
-.notification.info {
-  background: #3b82f6; /* azul */
+.notification.info { background: #3b82f6; }
+.notification.success { background: #22c55e; }
+.notification.warning { background: #eab308; }
+.notification.error { background: #ef4444; }
+
+/* Charts Section */
+#charts-section {
+  padding: 1rem;
 }
 
-.notification.success {
-  background: #22c55e; /* verde */
-}
-
-.notification.warning {
-  background: #eab308; /* amarelo */
-}
-
-.notification.error {
-  background: #ef4444; /* vermelho */
+canvas {
+  max-width: 100%;
+  margin-top: 1rem;
 }
