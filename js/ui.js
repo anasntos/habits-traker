@@ -3,7 +3,7 @@ import { loadDailyQuote } from "./motivation.js";
 import { addHabit, getAllHabits, deleteHabit, editHabit } from "./habitManager.js";
 import { checkInHabit } from "./progressTracker.js";
 import { sendBrowserNotification } from "./notifications.js";
-import { renderChartsForHabit } from "./charts.js";
+import { renderCharts } from "./charts.js";
 
 const habitList = document.getElementById("habit-list");
 const addHabitBtn = document.getElementById("add-habit-btn");
@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   renderHabits();
+  renderCharts();
 });
 
 // -----------------------------------------
@@ -38,7 +39,6 @@ export function renderHabits() {
     li.classList.add("habit-item");
     li.dataset.id = habit.id;
 
-    // Criar canvases únicos para os charts de cada hábito
     li.innerHTML = `
       <div class="habit-info">
         <strong>${habit.name}</strong>
@@ -51,17 +51,12 @@ export function renderHabits() {
         <button class="delete-btn" type="button" data-id="${habit.id}">🗑️</button>
       </div>
       <div class="habit-streak">🔥 Streak: <strong>${habit.streak || 0}</strong> days</div>
-      <div class="habit-charts">
-        <canvas id="weeklyChart-${habit.id}" width="300" height="150"></canvas>
-        <canvas id="monthlyChart-${habit.id}" width="300" height="150"></canvas>
-      </div>
     `;
 
     habitList.appendChild(li);
-
-    // Renderizar os charts desse hábito
-    renderChartsForHabit(habit.id);
   });
+
+  renderCharts(); // Atualiza gráficos sempre que hábitos mudarem
 }
 
 // -----------------------------------------
