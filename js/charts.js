@@ -1,12 +1,12 @@
 // charts.js
 import { getHabitHistory } from "./progressTracker.js";
 
-let weeklyChart = null;
-let monthlyChart = null;
+// Armazenar instâncias de charts por hábito
+const habitCharts = {};
 
-// ===========================
+// ===================================
 // HELPERS
-// ===========================
+// ===================================
 
 // Retorna número da semana no ano
 function getCurrentWeek() {
@@ -20,12 +20,14 @@ function getCurrentWeek() {
 function getLast6Months() {
   const months = [];
   const date = new Date();
+
   for (let i = 0; i < 6; i++) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, "0");
     months.unshift(`${y}-${m}`);
     date.setMonth(date.getMonth() - 1);
   }
+
   return months;
 }
 
@@ -33,18 +35,25 @@ function getLast6Months() {
 function countMonthlyCheckins(history) {
   const months = getLast6Months();
   const counts = months.map(month => {
-    return history.daily.filter(date => date.startsWith(month)).length;
+    return history.filter(date => date.startsWith(month)).length;
   });
   return { months, counts };
 }
 
-// ===========================
-// WEEKLY CHART
-// ===========================
-export function renderWeeklyChart(habitId) {
+// ===================================
+// RENDER CHARTS FOR HABIT
+// ===================================
+export function renderChartsForHabit(habitId) {
   const history = getHabitHistory(habitId);
   if (!history) return;
 
+  // Seleciona o canvas pelo ID (cada hábito deve ter um canvas único)
+  const weeklyCanvas = document.getElementById(`weeklyChart-${habitId}`);
+  const monthlyCanvas = document.getElementById(`monthlyChart-${habitId}`);
+
+  if (!weeklyCanvas || !monthlyCanvas) return;
+
+  // ---------- Weekly Chart ----------
   const weeklyData = [];
   const currentWeek = getCurrentWeek();
 
@@ -53,11 +62,10 @@ export function renderWeeklyChart(habitId) {
     weeklyData.push(history.weekly.includes(weekNumber) ? 1 : 0);
   }
 
-  const ctx = document.getElementById("weeklyChart").getContext("2d");
+  // Destruir chart anterior se existir
+  if (habitCharts[`weekly-${habitId}`]) habitCharts[`weekly-${habitId}`].destroy();
 
-  if (weeklyChart) weeklyChart.destroy();
-
-  weeklyChart = new Chart(ctx, {
+  habitCharts[`weekly-${habitId}`] = new Chart(weeklyCanvas.getContext("2d"), {
     type: "bar",
     data: {
       labels: ["-5w", "-4w", "-3w", "-2w", "-1w", "This week"],
@@ -69,48 +77,43 @@ export function renderWeeklyChart(habitId) {
     },
     options: {
       responsive: true,
-      scales: { y: { beginAtZero: true, max: 1 } }
+      scales: {
+        y: { beginAtZero: true, max: 1 }
+      }
     }
   });
-}
 
-// ===========================
-// MONTHLY CHART
-// ===========================
-export function renderMonthlyChart(habitId) {
-  const history = getHabitHistory(habitId);
-  if (!history) return;
+  // ---------- Monthly Chart ----------
+  const { months, counts } = countMonthlyCheckins(history.daily);
 
-  const { months, counts } = countMonthlyCheckins(history);
+  if (habitCharts[`monthly-${habitId}`]) habitCharts[`monthly-${habitId}`].destroy();
 
-  const ctx = document.getElementById("monthlyChart").getContext("2d");
-
-  if (monthlyChart) monthlyChart.destroy();
-
-  monthlyChart = new Chart(ctx, {
+  habitCharts[`monthly-${habitId}`] = new Chart(monthlyCanvas.getContext("2d"), {
     type: "line",
     data: {
       labels: months,
       datasets: [{
         label: "Monthly Check-ins",
         data: counts,
+        tension: 0.3,
         borderColor: "#CDB4DB",
         backgroundColor: "rgba(205, 180, 219, 0.3)",
-        tension: 0.3,
         fill: true,
+        pointRadius: 5
       }]
     },
     options: {
       responsive: true,
-      scales: { y: { beginAtZero: true } }
+      scales: {
+        y: { beginAtZero: true }
+      }
     }
   });
 }
 
-// ===========================
-// RENDER BOTH CHARTS
-// ===========================
-export function renderCharts(habitId) {
-  renderWeeklyChart(habitId);
-  renderMonthlyChart(habitId);
+// ===================================
+// RENDER ALL HABITS
+// ===================================
+export function renderAllCharts(habitIds) {
+  habitIds.forEach(id => renderChartsForHabit(id));
 }

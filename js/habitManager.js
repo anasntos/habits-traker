@@ -119,3 +119,11 @@ function getWeekNumber(date) {
   const pastDays = Math.floor((date - firstDay) / 86400000);
   return Math.ceil((pastDays + firstDay.getDay() + 1) / 7);
 }
+
+import { saveHabitsToLocalStorage } from "./storage.js";
+
+// ...
+
+export function saveAllHabits(habits) {
+  saveHabitsToLocalStorage(habits);
+}

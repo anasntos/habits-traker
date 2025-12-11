@@ -3,6 +3,7 @@ import { loadDailyQuote } from "./motivation.js";
 import { addHabit, getAllHabits, deleteHabit, editHabit } from "./habitManager.js";
 import { checkInHabit } from "./progressTracker.js";
 import { sendBrowserNotification } from "./notifications.js";
+import { renderChartsForHabit } from "./charts.js";
 
 const habitList = document.getElementById("habit-list");
 const addHabitBtn = document.getElementById("add-habit-btn");
@@ -49,9 +50,13 @@ export function renderHabits() {
         <button class="delete-btn" type="button" data-id="${habit.id}">🗑️</button>
       </div>
       <div class="habit-streak">🔥 Streak: <strong>${habit.streak || 0}</strong> days</div>
+      <canvas id="habitChart-${habit.id}" class="habit-chart"></canvas>
     `;
 
     habitList.appendChild(li);
+
+    // Render charts for each habit
+    renderChartsForHabit(habit.id);
   });
 }
 

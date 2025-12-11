@@ -1,4 +1,5 @@
 import { getAllHabits, saveAllHabits } from "./habitManager.js";
+import{saveHabitsToLocalStorage} from "./storage.js";
 
 // =====================================
 // HELPERS — Funções de Data
